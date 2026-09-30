@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulador Estratégico — Missão Decisão</title>
+<style>
+:root{--navy:#0b1f3a;--navy2:#132e50;--orange:#f59e0b;--paper:#f5f7fb;--ink:#172033;--muted:#667085;--ok:#087a55;--bad:#b42318;--line:#d8dfeb;--white:#fff}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#08182d 0,#102a49 340px,#f5f7fb 341px);font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--ink)}
+header{max-width:1100px;margin:auto;padding:48px 22px 36px;color:white}.eyebrow{letter-spacing:.16em;text-transform:uppercase;font-size:.78rem;color:#fbbf24;font-weight:800}
+h1{font-size:clamp(2rem,6vw,4rem);margin:.3rem 0 .45rem;line-height:1}.sub{max-width:760px;line-height:1.55;color:#dbe7f5}
+main{max-width:1100px;margin:auto;padding:0 22px 60px}.panel{background:#fff;border:1px solid #dfe5ee;border-radius:22px;padding:24px;box-shadow:0 16px 40px rgba(8,24,45,.12)}
+.dashboard{display:grid;grid-template-columns:1.4fr .6fr;gap:18px}.mission-map{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.roomBtn{border:1px solid var(--line);background:#fff;border-radius:14px;padding:13px;text-align:left;cursor:pointer;min-height:72px}.roomBtn.active{border:2px solid var(--orange);background:#fff8e8}.roomBtn.locked{opacity:.48;cursor:not-allowed}.roomBtn.done{border-color:#85c9b2}.roomBtn b{display:block;font-size:.75rem;color:var(--muted);margin-bottom:4px}
+.scoreBox{background:var(--navy);color:white;border-radius:18px;padding:20px;display:flex;flex-direction:column;justify-content:center}.scoreBig{font-size:2.7rem;font-weight:900;color:#fbbf24}.tiny{font-size:.82rem;color:#cbd8e8}
+.progress{height:10px;background:#e8edf4;border-radius:99px;overflow:hidden;margin-top:12px}.progress>span{display:block;height:100%;width:0;background:var(--orange);transition:width .35s}
+.stage{margin-top:18px}.roomHead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:18px}.roomTag{display:inline-block;background:#fff1cf;color:#8a5400;border-radius:999px;padding:6px 10px;font-weight:800;font-size:.76rem}.tool{font-size:.88rem;color:var(--muted);font-weight:700}
+.case{border-top:1px solid var(--line);padding:22px 0}.case:first-of-type{border-top:0}.case h3{margin:0 0 8px;font-size:1.2rem}.story{background:#f7f9fc;border-left:4px solid var(--navy2);padding:14px 16px;border-radius:0 12px 12px 0;line-height:1.55}.ask{font-weight:800;margin:16px 0 10px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:9px}.opt{border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px;cursor:pointer;text-align:left;font-size:.95rem}.opt:hover{border-color:#9aabc0}.opt.selected{border:2px solid var(--orange);background:#fff9ea}.opt.correct{border:2px solid var(--ok);background:#edf9f4}.opt.wrong{border:2px solid var(--bad);background:#fff1f0}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:13px}button.primary,button.secondary{border:0;border-radius:11px;padding:11px 15px;font-weight:800;cursor:pointer}button.primary{background:var(--navy);color:#fff}button.secondary{background:#eef2f7;color:var(--navy)}button:disabled{opacity:.45;cursor:not-allowed}
+.feedback{display:none;margin-top:12px;border-radius:12px;padding:13px;line-height:1.45}.feedback.ok{display:block;background:#edf9f4;color:#075d43}.feedback.bad{display:block;background:#fff4e6;color:#754200}
+.event{margin:18px 0;background:#fff7df;border:1px dashed #e1a522;border-radius:16px;padding:18px}.event strong{color:#8a5400}.hidden{display:none!important}
+.finalGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}.metric{border:1px solid var(--line);border-radius:13px;padding:13px}.metric b{display:flex;justify-content:space-between;gap:10px}.mini{height:7px;background:#e9edf3;border-radius:99px;margin-top:8px;overflow:hidden}.mini span{display:block;height:100%;background:var(--navy2)}
+.finish{background:linear-gradient(135deg,#0b1f3a,#173b65);color:#fff;border-radius:20px;padding:24px}.finish h2{margin-top:0}.finish .scoreBig{font-size:3.4rem}
+footer{text-align:center;color:#697586;padding:0 20px 35px;font-size:.84rem}
+@media(max-width:720px){.dashboard,.options,.finalGrid{grid-template-columns:1fr}.mission-map{grid-template-columns:1fr 1fr}header{padding-top:32px}.panel{padding:17px}.roomHead{flex-direction:column}}
+@media(max-width:430px){.mission-map{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+<div class="eyebrow">Experiência interativa • Estratégia</div>
+<h1>Simulador Estratégico</h1>
+<p class="sub">Você entrou no Simulador Estratégico. Escolha livremente entre seis salas de análise, enfrente cenários inesperados e conclua o desafio integrado.</p>
+</header>
+<main>
+<section class="panel dashboard">
+  <div>
+    <span class="roomTag">MISSÃO ATIVA</span>
+    <h2 style="margin:.55rem 0 .3rem">Escolha sua sala e inicie o desafio</h2>
+    <div class="tiny" style="color:var(--muted)">As 6 salas estão disponíveis desde o início. Você pode escolher a ferramenta que deseja analisar e alternar entre as salas a qualquer momento.</div>
+    <div id="map" class="mission-map"></div>
+  </div>
+  <aside class="scoreBox">
+    <div class="tiny">DECISÕES CONSISTENTES</div>
+    <div class="scoreBig"><span id="points">0</span>/<span id="answered">0</span></div>
+    <div class="tiny"><span id="progressText">0</span>% da missão concluída</div>
+    <div class="progress"><span id="bar"></span></div>
+  </aside>
+</section>
+
+<section id="stage" class="panel stage"></section>
+<section id="finalResult" class="panel stage hidden"></section>
+</main>
+<footer>Planejamento e Gestão Estratégica de TI • Simulador Estratégico</footer>
+
+<script>
+const DATA = {"missions": [{"room": "SALA 1", "title": "Percepção do Cliente", "tool": "Matriz dos 2 Rs", "intro": "Você foi chamado para descobrir se aquilo que a empresa considera valioso também é percebido pelo cliente.", "questions": [{"title": "O investimento que ninguém pediu", "story": "A empresa investiu fortemente em uma funcionalidade que a equipe considera exclusiva. Nas entrevistas, os clientes reconhecem que ela é diferente, mas afirmam que isso não influencia a decisão de compra.", "ask": "Qual diagnóstico representa melhor a situação?", "opts": ["Paraíso", "Igualdade", "Ouro de Tolo", "Invisível"], "a": 2, "ok": "O diferencial é reconhecido, mas não possui relevância para o cliente. Isso caracteriza Ouro de Tolo.", "hint": "Separe duas perguntas: o cliente percebe diferença? E essa diferença realmente importa para ele?"}, {"title": "Bom, mas igual aos outros", "story": "Um serviço resolve exatamente o problema do público e é considerado importante. O problema é que os clientes não identificam qualquer razão para escolhê-lo em vez das ofertas concorrentes.", "ask": "Em qual posição estratégica esse serviço se encontra?", "opts": ["Igualdade", "Paraíso", "Ouro de Tolo", "Invisível"], "a": 0, "ok": "Há relevância, mas não há reconhecimento de um diferencial. A posição é Igualdade.", "hint": "O serviço importa para o cliente, mas falta uma diferença percebida."}, {"title": "Alerta no Paraíso", "story": "A empresa finalmente possui uma oferta que os clientes consideram importante e claramente superior às alternativas. Durante a reunião, alguém diz: “Chegamos ao melhor cenário; agora podemos relaxar”.", "ask": "Qual é a decisão estratégica mais coerente?", "opts": ["Reduzir o monitoramento, pois a posição está consolidada", "Proteger o diferencial e acompanhar movimentos dos concorrentes", "Eliminar investimentos na oferta", "Ignorar mudanças na percepção dos clientes"], "a": 1, "ok": "No Paraíso, o desafio passa a ser preservar a posição, pois concorrentes podem copiar o diferencial.", "hint": "Uma vantagem percebida hoje não é garantia de vantagem permanente."}, {"title": "Produto fora do radar", "story": "Os clientes não consideram a oferta importante para suas necessidades e também não percebem nela qualquer diferença em relação ao mercado.", "ask": "Qual quadrante acende o alerta máximo?", "opts": ["Ouro de Tolo", "Igualdade", "Paraíso", "Invisível"], "a": 3, "ok": "Sem relevância e sem reconhecimento, a oferta está no quadrante Invisível.", "hint": "Aqui faltam simultaneamente os dois Rs."}]}, {"room": "SALA 2", "title": "Rotas de Crescimento", "tool": "Matriz de Ansoff", "intro": "A diretoria quer crescer. Seu trabalho é identificar que rota cada movimento representa.", "questions": [{"title": "Mais do mesmo — para quem já compra", "story": "Uma empresa mantém seus serviços atuais e cria um programa para fazer clientes ocasionais utilizarem a solução com maior frequência.", "ask": "Qual rota de crescimento está sendo escolhida?", "opts": ["Desenvolvimento de produto", "Diversificação", "Penetração no mercado", "Desenvolvimento de mercado"], "a": 2, "ok": "Produtos existentes + mercado existente caracterizam Penetração no mercado.", "hint": "Nada novo foi criado e nenhum novo mercado foi buscado."}, {"title": "Nova fronteira", "story": "Um serviço já consolidado será oferecido, sem alteração relevante, a um segmento de mercado que a empresa ainda não atende.", "ask": "Qual estratégia descreve melhor a decisão?", "opts": ["Desenvolvimento de mercado", "Penetração no mercado", "Diversificação", "Desenvolvimento de produto"], "a": 0, "ok": "A empresa leva um produto existente a um novo mercado: Desenvolvimento de mercado.", "hint": "Observe o que mudou: não foi o produto, foi o mercado."}, {"title": "Clientes conhecidos, solução nova", "story": "Depois de ouvir sua base fiel, a empresa decide criar um novo serviço especificamente para os clientes que já atende.", "ask": "Que movimento a Matriz de Ansoff identifica?", "opts": ["Penetração no mercado", "Desenvolvimento de produto", "Desenvolvimento de mercado", "Diversificação"], "a": 1, "ok": "Novo produto para mercado atual corresponde a Desenvolvimento de produto.", "hint": "O mercado permanece; a novidade está na oferta."}, {"title": "A aposta mais ousada", "story": "A direção aprova a entrada em um mercado ainda não atendido com uma oferta também inédita para a empresa.", "ask": "Qual estratégia envolve essa combinação e maior risco?", "opts": ["Desenvolvimento de produto", "Penetração", "Desenvolvimento de mercado", "Diversificação"], "a": 3, "ok": "Novo produto + novo mercado caracteriza Diversificação, a alternativa de maior risco na matriz.", "hint": "Duas dimensões mudam ao mesmo tempo."}]}, {"room": "SALA 3", "title": "Portfólio sob Pressão", "tool": "Matriz BCG", "intro": "Quatro ofertas disputam recursos. Classifique-as antes da próxima reunião de investimentos.", "questions": [{"title": "Líder em alta velocidade", "story": "Uma solução lidera seu segmento e atua em um mercado que continua crescendo rapidamente. Ela gera receita, mas ainda exige investimentos elevados para sustentar a posição.", "ask": "Qual é a classificação?", "opts": ["Estrela", "Vaca Leiteira", "Abacaxi", "Ponto de Interrogação"], "a": 0, "ok": "Alta participação relativa + alto crescimento = Estrela.", "hint": "Ela é líder, mas o mercado ainda exige investimento."}, {"title": "Promessa cara", "story": "Uma plataforma atua em um mercado de forte crescimento, mas possui pequena participação. Para disputar liderança, precisará receber investimentos significativos, sem garantia de sucesso.", "ask": "Onde ela se posiciona?", "opts": ["Vaca Leiteira", "Ponto de Interrogação", "Estrela", "Abacaxi"], "a": 1, "ok": "Alto crescimento com baixa participação caracteriza Ponto de Interrogação (Dúvida).", "hint": "O mercado é promissor; a posição competitiva ainda é fraca."}, {"title": "A máquina de caixa", "story": "Um produto possui grande participação em um mercado de baixo crescimento. Necessita de pouco investimento e continua gerando caixa e lucro.", "ask": "Qual é o quadrante?", "opts": ["Abacaxi", "Estrela", "Vaca Leiteira", "Ponto de Interrogação"], "a": 2, "ok": "Alta participação + baixo crescimento = Vaca Leiteira, associada à geração de caixa.", "hint": "A palavra-chave é geração de caixa com baixo investimento."}, {"title": "Hora de insistir?", "story": "Uma oferta apresenta baixa participação em um mercado que também cresce pouco. Recuperá-la exigiria recursos consideráveis.", "ask": "Qual classificação ajuda a discutir colher, abandonar ou minimizar investimentos?", "opts": ["Ponto de Interrogação", "Estrela", "Vaca Leiteira", "Abacaxi"], "a": 3, "ok": "Baixa participação e baixo crescimento caracterizam Abacaxi.", "hint": "As duas dimensões estão em posição desfavorável."}]}, {"room": "SALA 4", "title": "Comitê de Investimentos", "tool": "Matriz GE de Atratividade", "intro": "Agora duas variáveis não bastam. O comitê exige uma leitura mais ampla do mercado e da capacidade competitiva.", "questions": [{"title": "Além da participação de mercado", "story": "O comitê considera tamanho, crescimento, rentabilidade, rivalidade e barreiras de entrada. Também avalia marca, competências, lealdade, custos, inovação e capacidade administrativa.", "ask": "Que duas dimensões estão sendo construídas?", "opts": ["Forças e ameaças", "Atratividade do mercado e força competitiva", "Crescimento e participação relativa", "Relevância e reconhecimento"], "a": 1, "ok": "A Matriz GE combina Atratividade do mercado (externa) e Força competitiva (interna).", "hint": "Uma dimensão olha para o mercado; a outra, para a capacidade da unidade de competir."}, {"title": "Sinal verde", "story": "Uma unidade apresenta alta força competitiva e atua em um mercado de alta atratividade.", "ask": "Qual orientação é coerente com essa posição?", "opts": ["Retirar imediatamente", "Investir para crescer e proteger a posição", "Minimizar toda operação", "Abandonar o segmento"], "a": 1, "ok": "Alta atratividade + alta força competitiva favorecem investimento para crescimento e proteção da posição.", "hint": "O ambiente é atraente e a organização está forte."}, {"title": "Mercado excelente, posição frágil", "story": "O mercado é altamente atrativo, mas a unidade possui baixa força competitiva.", "ask": "Qual decisão corresponde à lógica apresentada pela Matriz GE?", "opts": ["Investir seletivamente, superar fraquezas e retirar-se se não houver crescimento sustentável", "Investir sem qualquer condição", "Manter tudo inalterado", "Desconsiderar a força competitiva"], "a": 0, "ok": "Nesse cenário, o investimento deve ser seletivo e condicionado à possibilidade de superar fragilidades.", "hint": "Atratividade alta não elimina a necessidade de avaliar fraquezas internas."}, {"title": "Zona crítica", "story": "A unidade combina baixa atratividade do mercado com baixa força competitiva.", "ask": "Que orientação aparece na matriz?", "opts": ["Investir agressivamente", "Proteger liderança", "Retirar-se", "Expandir para todos os segmentos"], "a": 2, "ok": "Baixa atratividade + baixa força competitiva apontam para retirada.", "hint": "Não há força interna nem um ambiente externo atraente que justifique expansão."}]}, {"room": "SALA 5", "title": "Sala de Crise", "tool": "Análise SWOT", "intro": "O cenário mudou. Organize sinais internos e externos antes de propor a reação estratégica.", "questions": [{"title": "Janela de oportunidade", "story": "A empresa possui uma equipe altamente qualificada e uma tecnologia própria. Ao mesmo tempo, surge uma demanda crescente exatamente para esse tipo de solução.", "ask": "Qual combinação estratégica está em jogo?", "opts": ["Problema", "Defesa", "Restrição", "Alavanca"], "a": 3, "ok": "Forças + Oportunidades formam uma Alavanca: usar capacidades internas para aproveitar condições externas favoráveis.", "hint": "Há algo positivo dentro e algo positivo fora."}, {"title": "O mercado abriu, mas...", "story": "Uma oportunidade relevante surge no mercado, porém a organização não possui competências internas suficientes para explorá-la imediatamente.", "ask": "Como essa combinação é tratada?", "opts": ["Restrição", "Alavanca", "Defesa", "Problema"], "a": 0, "ok": "Fraquezas + Oportunidades configuram Restrição: existe oportunidade, mas limitações internas precisam ser enfrentadas.", "hint": "O ambiente ajuda; a limitação está dentro da organização."}, {"title": "Use sua força", "story": "Uma ameaça externa coloca o setor sob pressão, mas a organização possui recursos e competências capazes de reduzir seus efeitos.", "ask": "Qual combinação representa essa situação?", "opts": ["Alavanca", "Defesa", "Problema", "Restrição"], "a": 1, "ok": "Forças + Ameaças correspondem à Defesa: utilizar forças para mitigar ameaças.", "hint": "A capacidade interna é usada para responder a algo negativo externo."}, {"title": "Duplo alerta", "story": "Uma fragilidade operacional interna coincide com uma ameaça crescente no ambiente externo.", "ask": "Qual classificação exige planos de ação especialmente cuidadosos?", "opts": ["Alavanca", "Defesa", "Restrição", "Problema"], "a": 3, "ok": "Fraquezas + Ameaças formam Problema, uma combinação especialmente desafiadora.", "hint": "Os dois lados da análise estão desfavoráveis."}]}, {"room": "SALA 6", "title": "Radar do Ambiente", "tool": "Análise PESTEL", "intro": "Seu radar monitora forças externas. Identifique de onde vem cada sinal.", "questions": [{"title": "Mudança no governo", "story": "Novas políticas públicas, alterações na estabilidade institucional e maior interferência governamental podem afetar as operações da organização.", "ask": "Qual dimensão do radar foi acionada?", "opts": ["Legal", "Política", "Econômica", "Sociocultural"], "a": 1, "ok": "Políticas governamentais, estabilidade e interferência do governo pertencem à dimensão Política.", "hint": "O foco está na atuação e no contexto governamental."}, {"title": "Pressão nos números", "story": "A inflação aumenta, as taxas de juros mudam e as projeções de crescimento econômico são revistas.", "ask": "Qual dimensão deve receber atenção?", "opts": ["Tecnológica", "Ecológica", "Econômica", "Legal"], "a": 2, "ok": "Inflação, juros e crescimento são fatores Econômicos.", "hint": "Os sinais alteram condições econômicas do ambiente."}, {"title": "Comportamento em transformação", "story": "Mudanças demográficas e novos hábitos culturais começam a alterar expectativas e padrões de consumo.", "ask": "Em qual dimensão esses sinais são classificados?", "opts": ["Sociocultural", "Política", "Legal", "Tecnológica"], "a": 0, "ok": "Tendências demográficas e hábitos culturais pertencem à dimensão Sociocultural.", "hint": "Pense em pessoas, sociedade, demografia e cultura."}, {"title": "Automação acelera", "story": "Novas tecnologias e automação alteram processos, produtos e a dinâmica competitiva do setor.", "ask": "Qual fator PESTEL está em movimento?", "opts": ["Ecológico", "Legal", "Político", "Tecnológico"], "a": 3, "ok": "Inovação e automação integram os fatores Tecnológicos.", "hint": "O agente da mudança é a evolução tecnológica."}]}], "finals": [{"title": "DESAFIO FINAL 1 — O conselho quer duas respostas", "story": "Uma empresa possui uma solução líder em um mercado de alto crescimento. Ao mesmo tempo, uma nova regulamentação poderá alterar as condições de operação.", "ask": "Qual combinação de ferramentas permite classificar o portfólio e, separadamente, monitorar a mudança macroambiental?", "opts": ["BCG + PESTEL", "Ansoff + 2 Rs", "SWOT + Ansoff", "2 Rs + GE"], "a": 0, "ok": "A BCG permite analisar a posição no portfólio; a PESTEL permite identificar fatores externos como mudanças regulatórias.", "hint": "Uma ferramenta olha crescimento/participação; a outra monitora o macroambiente."}, {"title": "DESAFIO FINAL 2 — Crescimento com diagnóstico", "story": "A empresa quer levar seu serviço atual a um mercado ainda não explorado. Antes de agir, identifica internamente uma marca forte e externamente uma oportunidade de demanda.", "ask": "Quais leituras aparecem, respectivamente, em Ansoff e SWOT?", "opts": ["Diversificação + Problema", "Desenvolvimento de mercado + Alavanca", "Penetração + Restrição", "Desenvolvimento de produto + Defesa"], "a": 1, "ok": "Produto existente em novo mercado = Desenvolvimento de mercado. Força + oportunidade = Alavanca.", "hint": "Resolva cada ferramenta separadamente e depois combine as respostas."}, {"title": "DESAFIO FINAL 3 — Não confunda as lentes", "story": "A direção quer uma análise que combine diversos fatores de atratividade externa com diversos fatores de força competitiva interna para orientar investimentos entre unidades de negócio.", "ask": "Qual ferramenta é a mais diretamente estruturada para essa finalidade?", "opts": ["Matriz dos 2 Rs", "PESTEL", "Matriz GE de Atratividade", "Matriz de Ansoff"], "a": 2, "ok": "A Matriz GE estrutura a análise em Atratividade do mercado × Força competitiva, em uma grade 3×3.", "hint": "Procure a ferramenta de portfólio que amplia a análise para vários fatores internos e externos."}]};
+const state={room:0, answers:{}, finalUnlocked:false};
+const total=DATA.missions.reduce((n,m)=>n+m.questions.length,0)+DATA.finals.length;
+const map=document.getElementById('map'), stage=document.getElementById('stage');
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function key(r,q){return 'r'+r+'q'+q}
+function allRoomAnswered(r){return DATA.missions[r].questions.every((_,q)=>state.answers[key(r,q)]?.checked)}
+function buildMap(){
+ map.innerHTML='';
+ DATA.missions.forEach((m,i)=>{
+   const b=document.createElement('button'); b.className='roomBtn '+(i===state.room?'active ':'')+(allRoomAnswered(i)?'done ':'');
+   b.disabled=false; b.innerHTML=`<b>${esc(m.room)} • ${esc(m.tool)}</b>${esc(m.title)}`;
+   b.addEventListener('click',()=>{state.room=i;render();window.scrollTo({top:document.getElementById('stage').offsetTop-12,behavior:'smooth'})}); map.appendChild(b);
+ });
+}
+function updateTop(){
+ const vals=Object.values(state.answers).filter(x=>x.checked);
+ const answered=vals.length, points=vals.filter(x=>x.correct).length;
+ document.getElementById('points').textContent=points; document.getElementById('answered').textContent=answered;
+ const pct=Math.round(answered/total*100); document.getElementById('progressText').textContent=pct; document.getElementById('bar').style.width=pct+'%';
+}
+function render(){
+ buildMap(); updateTop();
+ if(state.finalUnlocked){renderFinalChallenge();return}
+ const m=DATA.missions[state.room];
+ stage.innerHTML=`<div class="roomHead"><div><span class="roomTag">${esc(m.room)}</span><h2 style="margin:.55rem 0 .25rem">${esc(m.title)}</h2><div class="tool">${esc(m.tool)}</div></div><div class="tiny" style="color:var(--muted);max-width:470px">${esc(m.intro)}</div></div><div id="cases"></div><div id="roomAction"></div>`;
+ const cases=stage.querySelector('#cases');
+ m.questions.forEach((q,qi)=>cases.appendChild(caseNode(q,state.room,qi,false)));
+ if(state.room===1) cases.insertAdjacentHTML('beforeend',`<div class="event"><strong>⚡ EVENTO INESPERADO</strong><br>A diretoria muda a pergunta: “E se criarmos uma oferta inédita para um mercado também inédito?” Você já encontrou essa combinação durante a missão. Não responda por impulso: produto e mercado mudam ao mesmo tempo.</div>`);
+ if(state.room===4) cases.insertAdjacentHTML('beforeend',`<div class="event"><strong>⚡ MUDANÇA DE CENÁRIO</strong><br>Uma nova ameaça externa acaba de surgir. O diagnóstico só será útil se você distinguir o que está dentro da organização do que pertence ao ambiente.</div>`);
+ const ra=stage.querySelector('#roomAction');
+ if(allRoomAnswered(state.room)){
+   const allDone=DATA.missions.every((_,ri)=>allRoomAnswered(ri));
+   if(allDone){
+     ra.innerHTML=`<button class="primary" id="next">Liberar desafio final</button>`;
+     ra.querySelector('#next').addEventListener('click',()=>{state.finalUnlocked=true;render();window.scrollTo({top:stage.offsetTop-12,behavior:'smooth'})});
+   }else{
+     ra.innerHTML=`<div class="event"><strong>✓ Sala concluída.</strong><br>Escolha livremente outra sala no painel acima. O desafio final será liberado quando as seis ferramentas forem concluídas.</div>`;
+   }
+ }
+}
+function caseNode(q,r,qi,isFinal){
+ const k=isFinal?'f'+qi:key(r,qi), saved=state.answers[k];
+ const wrap=document.createElement('article'); wrap.className='case';
+ wrap.innerHTML=`<h3>${esc(q.title)}</h3><div class="story">${esc(q.story)}</div><div class="ask">${esc(q.ask)}</div><div class="options"></div><div class="actions"><button class="primary check" disabled>Confirmar decisão</button><button class="secondary hint">Pista estratégica</button></div><div class="feedback"></div>`;
+ const opts=wrap.querySelector('.options'), check=wrap.querySelector('.check'), fb=wrap.querySelector('.feedback');
+ q.opts.forEach((o,oi)=>{
+  const b=document.createElement('button'); b.type='button'; b.className='opt'; b.textContent=String.fromCharCode(65+oi)+') '+o;
+  if(saved?.selected===oi)b.classList.add('selected');
+  if(saved?.checked){b.disabled=true;if(oi===q.a)b.classList.add('correct');if(saved.selected===oi&&oi!==q.a)b.classList.add('wrong')}
+  b.addEventListener('click',()=>{if(state.answers[k]?.checked)return; state.answers[k]={selected:oi,checked:false}; [...opts.children].forEach(x=>x.classList.remove('selected'));b.classList.add('selected');check.disabled=false});
+  opts.appendChild(b);
+ });
+ if(saved?.checked){check.disabled=true; showFeedback(fb,q,saved.correct)}
+ else if(saved) check.disabled=false;
+ check.addEventListener('click',()=>{
+   const s=state.answers[k]; if(!s||s.checked)return;
+   s.checked=true;s.correct=s.selected===q.a;
+   [...opts.children].forEach((b,oi)=>{b.disabled=true;if(oi===q.a)b.classList.add('correct');if(oi===s.selected&&oi!==q.a)b.classList.add('wrong')});
+   check.disabled=true;showFeedback(fb,q,s.correct);updateTop();
+   if(!isFinal && allRoomAnswered(r)) render();
+   if(isFinal && DATA.finals.every((_,i)=>state.answers['f'+i]?.checked)) renderFinalChallenge();
+ });
+ wrap.querySelector('.hint').addEventListener('click',e=>{e.currentTarget.disabled=true; e.currentTarget.textContent='Pista: '+q.hint});
+ return wrap;
+}
+function showFeedback(fb,q,correct){
+ fb.className='feedback '+(correct?'ok':'bad');
+ fb.innerHTML=correct?`<strong>✓ Decisão consistente.</strong><br>${esc(q.ok)}`:`<strong>↻ Decisão revista.</strong><br>${esc(q.ok)}`;
+}
+function renderFinalChallenge(){
+ buildMap();updateTop();
+ stage.innerHTML=`<div class="roomHead"><div><span class="roomTag">NÍVEL FINAL</span><h2 style="margin:.55rem 0 .25rem">Conselho Estratégico</h2><div class="tool">Integração das ferramentas</div></div><div class="tiny" style="color:var(--muted);max-width:470px">Agora as ferramentas aparecem combinadas. Identifique qual lente estratégica resolve cada parte do problema.</div></div><div id="finalCases"></div>`;
+ const fc=stage.querySelector('#finalCases'); DATA.finals.forEach((q,i)=>fc.appendChild(caseNode(q,0,i,true)));
+ if(DATA.finals.every((_,i)=>state.answers['f'+i]?.checked)) showResult();
+}
+function showResult(){
+ const result=document.getElementById('finalResult'); result.classList.remove('hidden');
+ const vals=Object.values(state.answers).filter(x=>x.checked), pts=vals.filter(x=>x.correct).length, pct=Math.round(pts/total*100);
+ let msg=pct>=90?'Excelente leitura estratégica: você conectou conceitos e decisões com grande consistência.':pct>=75?'Muito bom: suas decisões mostram domínio, com alguns pontos para revisar.':pct>=60?'Missão cumprida: revise as salas com menor desempenho e tente superar sua marca.':'Missão concluída: use o painel para identificar onde concentrar a revisão antes de uma nova tentativa.';
+ let metrics=DATA.missions.map((m,r)=>{let a=m.questions.map((_,q)=>state.answers[key(r,q)]);let p=Math.round(a.filter(x=>x?.correct).length/a.length*100);return `<div class="metric"><b><span>${esc(m.tool)}</span><span>${p}%</span></b><div class="mini"><span style="width:${p}%"></span></div></div>`}).join('');
+ result.innerHTML=`<div class="finish"><span class="roomTag">MISSÃO CONCLUÍDA</span><h2>Painel da Missão</h2><div class="scoreBig">${pts}/${total}</div><p>${esc(msg)}</p></div><div class="finalGrid">${metrics}</div><div class="actions" style="margin-top:18px"><button class="primary" id="restart">Refazer a missão</button></div>`;
+ result.querySelector('#restart').addEventListener('click',()=>{state.room=0;state.answers={};state.finalUnlocked=false;result.classList.add('hidden');render();window.scrollTo({top:0,behavior:'smooth'})});
+}
+render();
+</script>
+</body></html>
